@@ -1,0 +1,12 @@
+order_id,customer_name,drink_name,base,milk,shots,temp_celsius,iced,extras,received_at_offset_min
+#101,Priya M.,Oat latte,espresso,oat,2,65,false,,4.8
+#102,Rohan K.,Flat white,ristretto,whole,2,65,false,,3.9
+#102,Rohan K.,Cold brew,cold_brew,none,0,4,true,,3.9
+#103,Aisha T.,Cappuccino,espresso,whole,2,65,false,,3.1
+#104,Dev S.,Double espresso,espresso,none,2,65,false,,2.6
+#105,Meera V.,Masala chai,filter,whole,0,75,false,masala,6.1
+#106,Arjun P.,Matcha latte,filter,oat,0,65,false,matcha,1.8
+#107,Sana R.,Americano,lungo,none,2,65,false,,1.2
+#108,Kiran L.,Oat flat white,ristretto,oat,2,65,false,,1.0
+#109,Rahul G.,Iced latte,espresso,whole,2,4,true,,0.8
+#110,Neha D.,Cortado,ristretto,whole,2,65,false,,0.5
