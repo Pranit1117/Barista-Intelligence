@@ -82,13 +82,23 @@ BaristaIQ is a real-time decision system that:
 
 ```
 barista-iq/
-├── app/            # Streamlit UI
-├── core/           # ML + scheduling logic
-├── api/            # FastAPI backend
-├── scripts/        # Training scripts
-├── tests/          # Unit + integration tests
-```
-
+├── app/                    # Streamlit frontend
+│   ├── main.py             # Entry point
+│   └── pages/              # Post-rush report · ML signals · Config
+├── core/                   # Framework-agnostic business logic
+│   ├── scorer/             # Complexity scorer
+│   ├── scheduler/          # Concurrent greedy scheduler
+│   ├── rl/                 # Q-learning agent + reward shaping
+│   └── pos/                # POS stream listener + mock generator
+├── api/                    # FastAPI routes: /orders /schedule /metrics /config
+├── tests/
+│   ├── unit/               # scorer · scheduler · RL agent
+│   └── integration/        # full pipeline + all API endpoints
+├── scripts/                # train_scorer.py · train_rl.py
+├── notebooks/              # EDA · complexity model · RL training
+├── docker-compose.yml
+├── requirements.txt
+└── .env.example
 ---
 
 ## 🎯 Why this is different
@@ -105,7 +115,8 @@ BaristaIQ:
 
 ## 📸 Demo
 
-<img width="539" height="233" alt="image" src="https://github.com/user-attachments/assets/d637bb08-a17c-4eff-b4f3-b6b233e816b6" />
+<img width="1912" height="678" alt="image" src="https://github.com/user-attachments/assets/3dc6da22-7be9-4a91-9565-478495da7380" />
+
 
 
 ---
