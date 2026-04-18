@@ -115,7 +115,8 @@ BaristaIQ:
 
 ## 📸 Demo
 
-<img width="1912" height="678" alt="image" src="https://github.com/user-attachments/assets/3dc6da22-7be9-4a91-9565-478495da7380" />
+<img width="812" height="480" alt="image" src="https://github.com/user-attachments/assets/d4f60b36-2d49-4c2f-b0be-ddfcce061eef" />
+
 
 
 
