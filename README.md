@@ -1,215 +1,148 @@
-# ☕ BaristaIQ — Barista Intelligence System
+# BaristaIQ
 
-> **Every other tool tells you what happened. BaristaIQ tells your barista what to do next — while the rush is happening.**
+> Every other tool tells you what happened. BaristaIQ tells your barista what to do next, while the rush is happening.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/built%20with-Streamlit-red)](https://streamlit.io)
 [![FastAPI](https://img.shields.io/badge/API-FastAPI-green)](https://fastapi.tiangolo.com)
+[![Tests](https://img.shields.io/badge/tests-52%20passing-brightgreen)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## 🧠 What it does
+## The problem
 
-BaristaIQ is an ML-powered barista assistant that solves a real operations problem: during a 7:45–9:15 AM rush, a skilled barista makes dozens of implicit decisions — pulling two espressos simultaneously, steaming milk while shots extract. An untrained barista serializes everything. **The difference is 2–3 minutes per order. With 40 orders in rush hour, that's 80+ minutes of lost throughput daily.**
-
-### Core capabilities
-
-| Module | What it does |
-|--------|-------------|
-| **Complexity Scorer** | Scores every drink 0–10 on 5 features: extraction, milk type, customizations, temp, shot count |
-| **Concurrent Scheduler** | Greedy algorithm assigns drinks to machine slots optimally — not in received order |
-| **Demand Predictor** | Time + weather + day-of-week model forecasts order volume 15 min ahead |
-| **RL Feedback Loop** | Completion signals retrain the policy weights in real time |
-| **Barista Tablet UI** | Streamlit dashboard showing "Start now" + "While that pulls" concurrent suggestions |
+During a 7:45 to 9:15 AM rush, a skilled barista makes dozens of implicit decisions: pulling two espressos simultaneously, steaming milk while shots extract. An untrained barista serializes everything. The difference is 2 to 3 minutes per order. With 40 orders in rush hour, that is 80+ minutes of lost throughput daily. No existing tool tells your team what to do next, in real time, while the rush is happening.
 
 ---
 
-## 🗂 Project structure
+## What it does
+
+BaristaIQ is a full-stack ML system that watches the order queue, scores each drink by complexity, schedules concurrent machine usage optimally, and surfaces a single clear action to the barista: **start this now** and **while that pulls, do this**.
+
+### Five core modules
+
+| Module | What it does |
+|---|---|
+| **Complexity Scorer** | Scores every drink 0 to 10 across extraction method, milk type, customizations, temperature, and shot count. Powder-prep drinks like matcha carry a bonus step for whisking and vessel prep. |
+| **Concurrent Scheduler** | Greedy algorithm assigns drinks to machine slots in priority order, maximising parallel execution. No two drinks ever collide on the same machine. Produces a live action pair: start now + while that pulls. |
+| **RL Feedback Loop** | Tabular Q-learning agent updates policy weights with every order completion. Reward is shaped across throughput gain, wait reduction, concurrency bonus, and order error penalty. Checkpoint save and load included. |
+| **POS Stream** | WebSocket listener normalises real POS payloads. In demo mode, a mock generator produces orders on a realistic rush-hour demand curve with configurable rate, multiplier, and error injection. |
+| **Demand Forecaster** | Time-of-day, day-of-week, and weather signals predict volume 15 minutes ahead. Powers rush-mode auto-activation and pre-warm recommendations shown in the post-rush report. |
+
+---
+
+## Business impact
+
+| Metric | Value |
+|---|---|
+| Avg wait reduction per order at peak | 2 to 3 minutes |
+| Additional orders served per rush hour | +12 to 18 (70-seat cafe estimate) |
+| Daily throughput recovered vs serialized | ~80 minutes |
+| Additional annual revenue potential | ~Rs 8L+ |
+| Time to barista proficiency | Days, not months |
+
+---
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Streamlit 1.35, multi-page, custom CSS design system, Plotly |
+| Backend | FastAPI + Uvicorn, Pydantic v2, full OpenAPI docs at /docs |
+| ML core | NumPy, scikit-learn, Gymnasium, tabular Q-learning |
+| Testing | pytest, 52 tests (38 unit + 14 integration), FastAPI TestClient |
+| DevOps | Docker, docker-compose, GitHub Actions CI on every PR |
+| Data | Pandas, joblib, model checkpoint serialisation |
+
+---
+
+## Project structure
 
 ```
 barista-iq/
-├── app/                        # Streamlit frontend
-│   ├── main.py                 # App entry point
-│   ├── components/
-│   │   ├── live_queue.py       # Active order queue display
-│   │   ├── action_display.py   # "Start now" + concurrent suggestion
-│   │   ├── machine_state.py    # Machine progress bars
-│   │   ├── metrics_panel.py    # Live throughput metrics
-│   │   ├── demand_chart.py     # Forecast visualization
-│   │   └── post_rush_report.py # Post-rush scorecard
-│   ├── pages/
-│   │   ├── 1_Live_Queue.py     # Main barista view
-│   │   ├── 2_Post_Rush.py      # Analytics & report
-│   │   ├── 3_ML_Signals.py     # RL weights + model internals
-│   │   └── 4_Config.py         # Calibration & toggles
-│   └── utils/
-│       ├── state.py            # Streamlit session state helpers
-│       └── formatting.py       # Display formatters
-│
-├── core/                       # Business logic (framework-agnostic)
-│   ├── scheduler/
-│   │   ├── __init__.py
-│   │   ├── concurrent_scheduler.py   # Main greedy scheduler
-│   │   ├── priority_scorer.py        # Order priority scoring
-│   │   └── slot_manager.py           # Machine slot tracking
-│   ├── scorer/
-│   │   ├── __init__.py
-│   │   ├── complexity_scorer.py      # Drink complexity model
-│   │   └── feature_extractor.py      # Feature engineering
-│   ├── rl/
-│   │   ├── __init__.py
-│   │   ├── agent.py                  # Q-learning agent
-│   │   ├── environment.py            # Café environment simulation
-│   │   ├── reward.py                 # Reward shaping functions
-│   │   └── trainer.py                # Training loop
-│   └── pos/
-│       ├── __init__.py
-│       ├── stream_listener.py        # POS WebSocket listener
-│       ├── order_parser.py           # Order normalization
-│       └── mock_stream.py            # Dev mode order generator
-│
-├── api/                        # FastAPI backend
-│   ├── main.py                 # FastAPI app
-│   ├── routes/
-│   │   ├── orders.py           # POST /orders, GET /queue
-│   │   ├── scheduler.py        # GET /schedule, POST /complete
-│   │   ├── metrics.py          # GET /metrics, GET /forecast
-│   │   └── config.py           # GET/POST /config
-│   ├── models/
-│   │   ├── order.py            # Pydantic order models
-│   │   ├── schedule.py         # Schedule response models
-│   │   └── config.py           # Config models
-│   └── dependencies.py         # Shared DI (DB, state)
-│
-├── data/
-│   ├── raw/                    # Raw POS exports (gitignored)
-│   ├── processed/              # Feature-engineered datasets
-│   │   └── sample_orders.csv   # Sample data for dev/demo
-│   └── models/                 # Serialized model weights
-│       ├── complexity_scorer.pkl
-│       └── rl_policy.pkl
-│
+├── app/                    # Streamlit frontend
+│   ├── main.py             # Entry point
+│   └── pages/              # Post-rush report · ML signals · Config
+├── core/                   # Framework-agnostic business logic
+│   ├── scorer/             # Complexity scorer
+│   ├── scheduler/          # Concurrent greedy scheduler
+│   ├── rl/                 # Q-learning agent + reward shaping
+│   └── pos/                # POS stream listener + mock generator
+├── api/                    # FastAPI routes: /orders /schedule /metrics /config
 ├── tests/
-│   ├── unit/
-│   │   ├── test_scorer.py
-│   │   ├── test_scheduler.py
-│   │   └── test_rl_agent.py
-│   └── integration/
-│       ├── test_api.py
-│       └── test_full_pipeline.py
-│
-├── notebooks/
-│   ├── 01_EDA.ipynb            # Exploratory data analysis
-│   ├── 02_complexity_model.ipynb
-│   ├── 03_rl_training.ipynb
-│   └── 04_demand_forecasting.ipynb
-│
-├── scripts/
-│   ├── train_scorer.py         # Train complexity scorer
-│   ├── train_rl.py             # Train RL agent
-│   ├── simulate_rush.py        # Generate synthetic rush data
-│   └── export_report.py        # Generate PDF report from logs
-│
-├── .github/
-│   └── workflows/
-│       ├── ci.yml              # Test + lint on PR
-│       └── deploy.yml          # Deploy to Streamlit Cloud
-│
+│   ├── unit/               # scorer · scheduler · RL agent
+│   └── integration/        # full pipeline + all API endpoints
+├── scripts/                # train_scorer.py · train_rl.py
+├── notebooks/              # EDA · complexity model · RL training
 ├── docker-compose.yml
-├── Dockerfile
-├── pyproject.toml
 ├── requirements.txt
-├── requirements-dev.txt
-├── .env.example
-├── .gitignore
-└── README.md
+└── .env.example
 ```
 
 ---
 
-## 🚀 Quick start
+## Quick start
 
-### Option A — Streamlit Cloud (recommended for demo)
 ```bash
-# 1. Fork this repo on GitHub
-# 2. Go to share.streamlit.io → New app → point to app/main.py
-# Done. No server required.
-```
-
-### Option B — Local development
-```bash
+# Clone
 git clone https://github.com/YOUR_USERNAME/barista-iq
 cd barista-iq
 
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-
-# Install dependencies
+# Install
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-# Copy env file
-cp .env.example .env
-
-# Run Streamlit app
+# Run
 streamlit run app/main.py
 ```
 
-### Option C — Docker
+Opens at `localhost:8501`. Runs in demo mode by default, no POS connection needed.
+
 ```bash
+# Run tests
+pytest tests/
+
+# Run with API (optional)
 docker-compose up
-# App at http://localhost:8501
-# API at http://localhost:8000/docs
+# Streamlit at :8501 · FastAPI at :8000/docs
 ```
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
-Copy `.env.example` → `.env` and set:
+Copy `.env.example` to `.env`. Key variables:
 
 ```env
-# POS Integration
-POS_STREAM_URL=ws://your-pos-system/orders
-POS_API_KEY=your_key_here
-
-# Mode
-DEMO_MODE=true          # Use mock order stream (no POS needed)
+DEMO_MODE=true                          # Use mock order stream
 RUSH_HOUR_START=07:45
 RUSH_HOUR_END=09:15
-
-# RL
-RL_LIVE_TRAINING=true   # Update weights from completions
-RL_CHECKPOINT_PATH=data/models/rl_policy.pkl
-
-# Machine calibration (seconds)
-GROUP1_SHOT_TIME=28
+GROUP1_SHOT_TIME=28                     # Machine calibration (seconds)
 GROUP2_SHOT_TIME=27
-STEAMER_WARMUP=8
+RL_LIVE_TRAINING=true                   # Update weights from completions
 ```
 
----
-
-## 📊 Business impact
-
-| Metric | Value |
-|--------|-------|
-| Avg wait reduction | **2–3 min/order during peak** |
-| Additional orders/rush hour | **+12–18** (70-seat café estimate) |
-| Additional annual revenue | **~₹8L+** from throughput alone |
-| Training time to proficiency | Days, not months |
+All machine times, scheduler weights, and RL hyperparameters are tunable from the Config page in the UI without touching code.
 
 ---
 
-## 🤝 Contributing
+## Deploy to Streamlit Cloud
 
-1. Fork → feature branch → PR
-2. Run `pytest tests/` before pushing
-3. Follow the [CONTRIBUTING.md](docs/CONTRIBUTING.md) guide
+1. Push this repo to GitHub
+2. Go to share.streamlit.io and sign in with GitHub
+3. Select your repo, set main file to `app/main.py`, click Deploy
+
+Live in under 3 minutes. Free.
 
 ---
 
-## 📄 License
+## Contributing
 
-MIT — see [LICENSE](LICENSE)
+Fork, create a feature branch, run `pytest tests/` before opening a PR. The GitHub Actions CI workflow runs all 52 tests automatically on every push.
+
+---
+
+## License
+
+MIT. See [LICENSE](LICENSE).
