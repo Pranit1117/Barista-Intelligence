@@ -12,7 +12,7 @@
 ## 🚀 Live Demo
 
 👉 **Try it here:**
-**https://barista-intelligence-dgws2xgnfvb7pabavthwu6.streamlit.app/**
+**https://barista-intelligence-dgws2xgnfvb7pabavthwu6.streamlit.app/*
 
 *No setup needed. Runs in demo mode with live simulated café orders.*
 
@@ -99,6 +99,8 @@ barista-iq/
 ├── docker-compose.yml
 ├── requirements.txt
 └── .env.example
+```
+
 ---
 
 ## 🎯 Why this is different
@@ -115,10 +117,8 @@ BaristaIQ:
 
 ## 📸 Demo
 
-<img width="812" height="480" alt="image" src="https://github.com/user-attachments/assets/d4f60b36-2d49-4c2f-b0be-ddfcce061eef" />
-
-
-
+*<img width="1909" height="790" alt="image" src="https://github.com/user-attachments/assets/452ca6e1-22b6-4725-b948-2af41e5faf42" />
+*
 
 ---
 
